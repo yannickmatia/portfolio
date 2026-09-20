@@ -1,6 +1,6 @@
-# Yannick Matia — portfolio redesign
+# Yannick Matia portfolio
 
-Plain HTML and CSS. No Jekyll theme, JavaScript dependency, subscription, or build step.
+Plain HTML and CSS. No Jekyll theme, JavaScript dependency, subscription, or build step. The design uses `#171717`, `#FF6719`, and `#FFFFFF`, with the portrait reserved for the About section.
 
 ## Update your existing GitHub site
 1. Unzip this package.
