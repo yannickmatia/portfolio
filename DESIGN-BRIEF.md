@@ -58,6 +58,15 @@ The current reference set includes:
 - Keep accessible text labels for icons, including labels that may be visually hidden.
 - Do not use the LinkedIn profile image.
 - The existing portrait may be color corrected, but it must remain on About only.
+- Prevent typographic orphans. No sentence or heading should leave only one or two words on a final line when the layout can reasonably avoid it. Use intentional line breaks, balanced headings, and responsive width adjustments rather than shrinking type indiscriminately.
+
+## Expressive system
+
+- Preserve a clear underlying grid, then break it selectively with one unexpected visual interruption per page.
+- Use annotations, arrows, circles, diagrams, offsets, and rotation sparingly. They should reveal personality or reinforce systems thinking, not become decoration without meaning.
+- Limit photographic rotation or offset to one deliberate moment per page.
+- Use brief observational captions to connect imagery to place, attention, movement, or process.
+- Hover states may reveal a short secondary thought, but essential information must remain visible without hovering.
 
 ## Personal photography
 
