@@ -1,25 +1,23 @@
 # Yannick Matia portfolio
 
-Plain HTML and CSS. No Jekyll theme, JavaScript dependency, subscription, or build step. The design uses `#171717`, `#FF6719`, and `#FFFFFF`, with the portrait reserved for the About section.
+A multi-page personal portfolio for Yannick Matia, a Brooklyn-based marketing operations practitioner and creative writer. The site introduces his areas of expertise, published writing, personal perspective, and ways to connect.
 
-## Update your existing GitHub site
-1. Unzip this package.
-2. In your local portfolio repository, replace index.html and style.css with these versions. Copy favicon.svg, .nojekyll, and the assets folder into the repository root too. Preserve your .git folder and any unrelated files.
-3. Open index.html in your browser to preview. In VS Code, edit index.html for content and style.css for design.
-4. Review the changes in VS Code Source Control, stage the changed website files, commit, then push/sync to your existing main branch.
-5. Your existing GitHub Pages configuration can remain main / root. Do not upload the ZIP or a containing folder. The entry file must be at the repository root.
+## Build
 
-Alternatively, upload the extracted files and assets folder through GitHub's Add file > Upload files, then commit. Confirm that assets/yannick-matia.jpg exists after upload.
+The site is built with semantic HTML and CSS and hosted through GitHub Pages. It intentionally uses no off-the-shelf theme, framework, or browser-side JavaScript. A small Node script and scheduled GitHub workflow refresh the Writing page from Yannick's Substack RSS feed.
 
-Your site address remains https://yannickmatia.github.io/portfolio/ . This package has not been pushed to your GitHub account for you.
+The primary pages are:
 
-## Editing
-- Identity and social links: near the top of index.html.
-- Work: six project articles in the Professional work disclosure.
-- Assessment: the aside with class assessment, below the CRM project bullets. This is labeled as a hypothetical interview exercise and does not claim achieved results.
-- About: search EDIT BIO. The current short bio is based on your supplied resume and interests.
-- Colors, spacing, responsive layout: style.css.
-- Portrait: assets/yannick-matia.jpg, copied unchanged from your supplied photo; CSS controls its display crop.
-- All three sections use native details/summary elements, supporting keyboard interaction without JavaScript. Professional work opens by default; remove its open attribute to start collapsed.
+- `index.html` for the homepage
+- `work.html` for professional expertise
+- `writing.html` for published writing
+- `about.html` for Yannick's biography and personal interests
+- `style.css` for the shared visual system and responsive behavior
 
-No original assessment PDF, project tracker, or internal document links are shipped. Fonts use local system fonts, so the site does not depend on an external font service.
+## Editing the site
+
+Edit page copy directly in the corresponding HTML file. Shared colors, typography, spacing, layouts, and interactions live in `style.css`. Images are stored under `assets/`.
+
+The Writing page is refreshed automatically each day. Its featured article and optional custom summaries are controlled in `content/writing.json`. Run `node scripts/update-writing.mjs` to preview an RSS update locally, then review `writing.html`.
+
+Changes published to the configured GitHub Pages branch update the live site. Preview edited HTML locally before committing, and preserve the voice and visual principles documented in `DESIGN-BRIEF.md`.

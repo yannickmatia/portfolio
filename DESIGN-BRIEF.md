@@ -50,6 +50,8 @@ The current reference set includes:
 - The fiction submission supplied for Brooklyn Review
 - The poetry submission supplied for Brooklyn Review
 
+The Writing page should display one manually selected featured Substack post followed by the latest two posts from the publication RSS feed. Keep summaries concise and editorial rather than reproducing long feed excerpts.
+
 ## Confirmed interface requirements
 
 - Social links belong in the footer, not in a separate social profile section.

@@ -1,0 +1,20 @@
+{
+  "feedUrl": "https://yannickmatia.substack.com/feed",
+  "featured": {
+    "url": "https://yannickmatia.substack.com/p/the-barrier-to-entry",
+    "title": "The Barrier to Entry",
+    "summary": "Why putting yourself out there can feel daunting.",
+    "aside": "Start before ready ↗"
+  },
+  "postCount": 3,
+  "overrides": {
+    "https://yannickmatia.substack.com/p/poetry-reflections": {
+      "summary": "Missing my self-imposed deadline.",
+      "aside": "Still becoming ↗"
+    },
+    "https://yannickmatia.substack.com/p/revisiting-pain": {
+      "summary": "A note on facing the things buried deep.",
+      "aside": "Look again ↗"
+    }
+  }
+}
