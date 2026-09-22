@@ -9,7 +9,7 @@ The site should represent Yannick Matia: a Brooklyn-based MarTech and RevOps pra
 ## Keep
 
 - Background `#171717`, accent `#FF6719`, and white reading sections.
-- Portrait on About only.
+- Use the formal studio portrait on About only. Other personal photographs may appear across the site when they serve a clear narrative or visual purpose.
 - Clear paths to professional work, writing, About, and contact.
 - Accurate distinctions between implemented work and interview exercises.
 - No em dashes or generic professional slogans.
@@ -58,6 +58,12 @@ The current reference set includes:
 - Keep accessible text labels for icons, including labels that may be visually hidden.
 - Do not use the LinkedIn profile image.
 - The existing portrait may be color corrected, but it must remain on About only.
+
+## Personal photography
+
+Use Yannick's own photographs to show observation, movement, humor, community, and joy. Favor a small, intentional edit over a comprehensive gallery.
+
+Treat images through crop, contrast, color overlays, and composition while preserving their documentary character. Lakers and Paris Saint-Germain colors may inform occasional tinting, but should not become explicit team branding.
 
 ## Review gate
 
