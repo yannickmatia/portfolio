@@ -7,15 +7,9 @@ const startMarker = "    <!-- SUBSTACK_POSTS_START -->";
 const endMarker = "    <!-- SUBSTACK_POSTS_END -->";
 
 const config = JSON.parse(await readFile(configUrl, "utf8"));
-const response = await fetch(config.feedUrl, {
-  headers: { "user-agent": "Yannick-Matia-Portfolio/1.0" }
-});
-
-if (!response.ok) {
-  throw new Error(`Substack feed returned ${response.status} ${response.statusText}`);
-}
-
-const xml = await response.text();
+const feedFileIndex = process.argv.indexOf("--feed-file");
+const feedFile = feedFileIndex >= 0 ? process.argv[feedFileIndex + 1] : undefined;
+const xml = feedFile ? await readFile(feedFile, "utf8") : await fetchFeed(config.feedUrl);
 const items = [...xml.matchAll(/<item\b[\s\S]*?<\/item>/gi)].map(([item]) => ({
   title: field(item, "title"),
   url: field(item, "link").replace(/\?.*$/, ""),
@@ -42,6 +36,19 @@ const before = page.slice(0, page.indexOf(startMarker));
 const after = page.slice(page.indexOf(endMarker) + endMarker.length);
 await writeFile(pageUrl, `${before}${startMarker}\n${rows}\n${endMarker}${after}`);
 console.log(`Updated writing.html with ${selected.length} Substack posts.`);
+
+async function fetchFeed(url) {
+  const response = await fetch(url, {
+    headers: {
+      accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.8",
+      "user-agent": "Mozilla/5.0 (compatible; YannickMatiaPortfolio/1.0)"
+    }
+  });
+  if (!response.ok) {
+    throw new Error(`Substack feed returned ${response.status} ${response.statusText}`);
+  }
+  return response.text();
+}
 
 function field(item, name) {
   const match = item.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)<\\/${name}>`, "i"));
