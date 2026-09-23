@@ -10,11 +10,7 @@ const config = JSON.parse(await readFile(configUrl, "utf8"));
 const feedFileIndex = process.argv.indexOf("--feed-file");
 const feedFile = feedFileIndex >= 0 ? process.argv[feedFileIndex + 1] : undefined;
 const xml = feedFile ? await readFile(feedFile, "utf8") : await fetchFeed(config.feedUrl);
-const items = [...xml.matchAll(/<item\b[\s\S]*?<\/item>/gi)].map(([item]) => ({
-  title: field(item, "title"),
-  url: field(item, "link").replace(/\?.*$/, ""),
-  description: field(item, "description")
-})).filter((post) => post.title && post.url);
+const items = parseItems(xml);
 
 if (!items.length) throw new Error("No posts were found in the Substack feed.");
 
@@ -25,7 +21,10 @@ if (!config.featured?.url || !config.featured?.title || !config.featured?.summar
 const featured = { ...config.featured, featured: true };
 const selected = [featured, ...items.filter((post) => !sameUrl(post.url, featured.url))]
   .slice(0, config.postCount ?? 3);
-const rows = selected.map((post, index) => renderPost(post, index, config)).join("\n");
+const detailed = await Promise.all(selected.map((post) =>
+  post.featured || post.title ? post : hydrateProxiedPost(post.url)
+));
+const rows = detailed.map((post, index) => renderPost(post, index, config)).join("\n");
 const page = await readFile(pageUrl, "utf8");
 
 if (!page.includes(startMarker) || !page.includes(endMarker)) {
@@ -48,6 +47,45 @@ async function fetchFeed(url) {
     throw new Error(`Substack feed returned ${response.status} ${response.statusText}`);
   }
   return response.text();
+}
+
+function parseItems(source) {
+  const rssItems = [...source.matchAll(/<item\b[\s\S]*?<\/item>/gi)].map(([item]) => ({
+    title: field(item, "title"),
+    url: field(item, "link").replace(/\?.*$/, ""),
+    description: field(item, "description")
+  })).filter((post) => post.title && post.url);
+
+  if (rssItems.length) return rssItems;
+
+  const urls = [...new Set(
+    [...source.matchAll(/https:\/\/yannickmatia\.substack\.com\/p\/[a-z0-9-]+/gi)]
+      .map(([url]) => url)
+  )];
+  if (!urls.length) return [];
+  return urls.map((url) => ({ title: "", url, description: "" }));
+}
+
+async function hydrateProxiedPost(url) {
+  const proxyUrl = `https://r.jina.ai/http://${new URL(url).host}${new URL(url).pathname}`;
+  const response = await fetch(proxyUrl, {
+    headers: { "user-agent": "YannickMatiaPortfolio/1.0" }
+  });
+  if (!response.ok) {
+    throw new Error(`Article proxy returned ${response.status} for ${url}`);
+  }
+  const page = await response.text();
+  const title = page.match(/^Title:\s*(.+)$/m)?.[1]?.trim() ?? titleFromSlug(url);
+  const markdown = page.split(/Markdown Content:\s*\n/i)[1] ?? "";
+  const description = markdown.split(/\n\s*\n/)
+    .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
+    .find((paragraph) => paragraph && !/^(?:[#>!\[]|https?:\/\/)/.test(paragraph)) ?? "";
+  return { title, url, description };
+}
+
+function titleFromSlug(url) {
+  const slug = new URL(url).pathname.split("/").filter(Boolean).at(-1) ?? "New writing";
+  return slug.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 }
 
 function field(item, name) {

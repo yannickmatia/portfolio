@@ -25,14 +25,14 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - name: Download Substack feed
+      - name: Download Substack feed through text proxy
         run: >-
           curl --fail --location --show-error --silent
           --retry 4 --retry-all-errors --retry-delay 3
           --header "Accept: application/rss+xml, application/xml;q=0.9, */*;q=0.8"
           --user-agent "Mozilla/5.0 (compatible; YannickMatiaPortfolio/1.0)"
           --output /tmp/substack-feed.xml
-          "https://yannickmatia.substack.com/feed"
+          "https://r.jina.ai/http://yannickmatia.substack.com/feed"
       - name: Refresh writing page
         run: node scripts/update-writing.mjs --feed-file /tmp/substack-feed.xml
       - name: Commit changes
