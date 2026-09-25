@@ -38,7 +38,7 @@ The site structure must support four primary paths:
 
 Use a multi-page architecture with a focused homepage and separate pages for Work, Writing, and About. Contact should remain a prominent action rather than a thin standalone page. Do not create separate project pages at this stage.
 
-Omit the resume from navigation until Yannick has discussed his redesigned role with his manager and supplied the resulting update. The current resume is otherwise confirmed as accurate.
+Include the confirmed résumé as a dedicated navigation page with options to view or download the original PDF. Keep the document itself unchanged unless Yannick explicitly requests résumé edits.
 
 ## Writing references
 

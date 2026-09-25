@@ -12,6 +12,7 @@ The primary pages are:
 - `work.html` for professional expertise
 - `writing.html` for published writing
 - `about.html` for Yannick's biography and personal interests
+- `resume.html` for viewing or downloading the current résumé
 - `style.css` for the shared visual system and responsive behavior
 
 ## Editing the site
