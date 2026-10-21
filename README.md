@@ -20,5 +20,6 @@ The primary pages are:
 Edit page copy directly in the corresponding HTML file. Shared colors, typography, spacing, layouts, and interactions live in `style.css`. Images are stored under `assets/`.
 
 The Writing page is refreshed automatically each day. Its featured article and optional custom summaries are controlled in `content/writing.json`. Run `node scripts/update-writing.mjs` to preview an RSS update locally, then review `writing.html`.
+Run `node --test scripts/update-writing.test.mjs` to check the updater's retry and fallback behavior when the article proxy is unavailable.
 
 Changes published to the configured GitHub Pages branch update the live site. Preview edited HTML locally before committing, and preserve the voice and visual principles documented in `DESIGN-BRIEF.md`.

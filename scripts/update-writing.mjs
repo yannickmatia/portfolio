@@ -22,7 +22,7 @@ const featured = { ...config.featured, featured: true };
 const selected = [featured, ...items.filter((post) => !sameUrl(post.url, featured.url))]
   .slice(0, config.postCount ?? 3);
 const detailed = await Promise.all(selected.map((post) =>
-  post.featured || post.title ? post : hydrateProxiedPost(post.url)
+  post.featured || post.title ? post : hydrateProxiedPost(post)
 ));
 const rows = detailed.map((post, index) => renderPost(post, index, config)).join("\n");
 const page = await readFile(pageUrl, "utf8");
@@ -66,21 +66,37 @@ function parseItems(source) {
   return urls.map((url) => ({ title: "", url, description: "" }));
 }
 
-async function hydrateProxiedPost(url) {
+async function hydrateProxiedPost(post) {
+  const { url } = post;
   const proxyUrl = `https://r.jina.ai/http://${new URL(url).host}${new URL(url).pathname}`;
-  const response = await fetch(proxyUrl, {
-    headers: { "user-agent": "YannickMatiaPortfolio/1.0" }
-  });
-  if (!response.ok) {
-    throw new Error(`Article proxy returned ${response.status} for ${url}`);
+  let lastError;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const response = await fetch(proxyUrl, {
+        headers: { "user-agent": "YannickMatiaPortfolio/1.0" }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const page = await response.text();
+      const title = page.match(/^Title:\s*(.+)$/m)?.[1]?.trim() ?? titleFromSlug(url);
+      const markdown = page.split(/Markdown Content:\s*\n/i)[1] ?? "";
+      const description = markdown.split(/\n\s*\n/)
+        .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
+        .find((paragraph) => paragraph && !/^(?:[#>!\[]|https?:\/\/)/.test(paragraph)) ?? "";
+      return { ...post, title, description: description || post.description };
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+      }
+    }
   }
-  const page = await response.text();
-  const title = page.match(/^Title:\s*(.+)$/m)?.[1]?.trim() ?? titleFromSlug(url);
-  const markdown = page.split(/Markdown Content:\s*\n/i)[1] ?? "";
-  const description = markdown.split(/\n\s*\n/)
-    .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
-    .find((paragraph) => paragraph && !/^(?:[#>!\[]|https?:\/\/)/.test(paragraph)) ?? "";
-  return { title, url, description };
+
+  const reason = lastError instanceof Error ? lastError.message : String(lastError);
+  console.warn(`Article proxy unavailable after 3 attempts for ${url} (${reason}); using the URL slug as the title.`);
+  return { ...post, title: titleFromSlug(url) };
 }
 
 function titleFromSlug(url) {
