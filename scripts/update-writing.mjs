@@ -9,8 +9,9 @@ const endMarker = "    <!-- SUBSTACK_POSTS_END -->";
 const config = JSON.parse(await readFile(configUrl, "utf8"));
 const feedFileIndex = process.argv.indexOf("--feed-file");
 const feedFile = feedFileIndex >= 0 ? process.argv[feedFileIndex + 1] : undefined;
-const xml = feedFile ? await readFile(feedFile, "utf8") : await fetchFeed(config.feedUrl);
-const items = parseItems(xml);
+const items = feedFile
+  ? parseItems(await readFile(feedFile, "utf8"), { allowTextLinks: true })
+  : await fetchFeed(config.feedUrl);
 
 if (!items.length) throw new Error("No posts were found in the Substack feed.");
 
@@ -37,32 +38,76 @@ await writeFile(pageUrl, `${before}${startMarker}\n${rows}\n${endMarker}${after}
 console.log(`Updated writing.html with ${selected.length} Substack posts.`);
 
 async function fetchFeed(url) {
-  const response = await fetch(url, {
-    headers: {
-      accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.8",
-      "user-agent": "Mozilla/5.0 (compatible; YannickMatiaPortfolio/1.0)"
-    }
-  });
-  if (!response.ok) {
-    throw new Error(`Substack feed returned ${response.status} ${response.statusText}`);
+  const directUrl = new URL(url);
+  const proxyUrl = `https://r.jina.ai/http://${directUrl.host}${directUrl.pathname}${directUrl.search}`;
+  let directError;
+
+  try {
+    return await fetchAndParseFeed(url, false);
+  } catch (error) {
+    directError = error;
+    const reason = error instanceof Error ? error.message : String(error);
+    console.warn(`Direct Substack RSS unavailable (${reason}); trying the text proxy.`);
   }
-  return response.text();
+
+  try {
+    return await fetchAndParseFeed(proxyUrl, true);
+  } catch (error) {
+    const directReason = directError instanceof Error ? directError.message : String(directError);
+    const proxyReason = error instanceof Error ? error.message : String(error);
+    throw new Error(`Unable to load the Substack feed. Direct RSS failed: ${directReason}; text proxy failed: ${proxyReason}`);
+  }
 }
 
-function parseItems(source) {
-  const rssItems = [...source.matchAll(/<item\b[\s\S]*?<\/item>/gi)].map(([item]) => ({
-    title: field(item, "title"),
-    url: field(item, "link").replace(/\?.*$/, ""),
-    description: field(item, "description")
-  })).filter((post) => post.title && post.url);
+async function fetchAndParseFeed(url, allowTextLinks) {
+  let lastError;
 
-  if (rssItems.length) return rssItems;
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.8",
+          "user-agent": "Mozilla/5.0 (compatible; YannickMatiaPortfolio/1.0)"
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ${response.statusText}`.trim());
+      }
+      return parseItems(await response.text(), { allowTextLinks });
+    } catch (error) {
+      lastError = error;
+      if (attempt < 5) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+      }
+    }
+  }
+
+  const reason = lastError instanceof Error ? lastError.message : String(lastError);
+  throw new Error(`Feed request failed after 5 attempts (${reason})`);
+}
+
+function parseItems(source, { allowTextLinks = false } = {}) {
+  if (/<rss\b/i.test(source) && /<channel\b/i.test(source)) {
+    const rssItems = [...source.matchAll(/<item\b[\s\S]*?<\/item>/gi)].map(([item]) => ({
+      title: field(item, "title"),
+      url: field(item, "link").replace(/\?.*$/, ""),
+      description: field(item, "description")
+    })).filter((post) => post.title && post.url);
+
+    if (rssItems.length) return rssItems;
+    throw new Error("RSS response did not contain any valid posts.");
+  }
+
+  if (!allowTextLinks || /<\s*(?:!doctype|html|body)\b/i.test(source)
+      || !/^(?:Title:|URL Source:|Markdown Content:)/m.test(source)) {
+    throw new Error("Response is not valid RSS or a supported text-proxy response.");
+  }
 
   const urls = [...new Set(
     [...source.matchAll(/https:\/\/yannickmatia\.substack\.com\/p\/[a-z0-9-]+/gi)]
       .map(([url]) => url)
   )];
-  if (!urls.length) return [];
+  if (!urls.length) throw new Error("Text proxy response contained no Substack posts.");
   return urls.map((url) => ({ title: "", url, description: "" }));
 }
 
